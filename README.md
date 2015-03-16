@@ -12,9 +12,9 @@ First, you must generate the projects using [CMake](http://www.cmake.org/). Open
     cd build
     cmake .. 
 
-`cmake` takes an optional `-G` argument to specify which project generator to use. For example, the following command will use the Visual Studio 2012 generator. A complete list of available generators can be found by running `cmake` with no arguments.
+`cmake` takes an optional `-G` argument to specify which project generator to use. For example, the following command will use the Visual Studio 2013 generator. A complete list of available generators can be found by running `cmake` with no arguments.
 
-    cmake -G "Visual Studio 11" ..
+    cmake -G "Visual Studio 12 2013" ..
 
 On a Unix-like OS, to generate a makefile that builds the release configuration:
 
