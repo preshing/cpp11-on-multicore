@@ -1,6 +1,6 @@
 Various synchronization primitives for multithreaded applications in C++11.
 
-Used in the blog post, "Semaphores are Surprisingly Versatile".
+Used in the blog post, [Semaphores are Surprisingly Versatile](http://preshing.com/20150316/semaphores-are-surprisingly-versatile).
 
 Code is released under the [zlib license](http://en.wikipedia.org/wiki/Zlib_License). See the `LICENSE` file.
 
