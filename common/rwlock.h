@@ -20,9 +20,9 @@ class NonRecursiveRWLock
 {
 private:
     BEGIN_BITFIELD_TYPE(Status, uint32_t)
-        ADD_BITFIELD_MEMBER(readers, 0, 8)
-        ADD_BITFIELD_MEMBER(waitToRead, 8, 8)
-        ADD_BITFIELD_MEMBER(writers, 16, 8)
+        ADD_BITFIELD_MEMBER(readers, 0, 10)
+        ADD_BITFIELD_MEMBER(waitToRead, 10, 10)
+        ADD_BITFIELD_MEMBER(writers, 20, 10)
     END_BITFIELD_TYPE()
 
     std::atomic<uint32_t> m_status;
