@@ -40,8 +40,8 @@ public:
             int newStatus = oldStatus + 1;
             if (m_status.compare_exchange_weak(oldStatus, newStatus, std::memory_order_release, std::memory_order_relaxed))
                 break;
-            // The compare-exchange failed, likely because another thread changed it between attempts.
-            // Retry the CAS loop.
+            // The compare-exchange failed, likely because another thread changed m_status.
+            // oldStatus now has its latest value (passed by reference). Retry the CAS loop.
         }
         if (oldStatus < 0)
             m_sema.signal();    // Release one waiting thread.
