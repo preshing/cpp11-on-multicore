@@ -238,7 +238,7 @@ public:
             // Sanity check.
             for (int i = 0; i < m_numPhilos; i++)
                 assert(newStatus.philos().get(i) <= IntType(m_numPhilos));
-            // CAS until successful.
+            // CAS until successful. On failure, oldStatus will be updated with the latest value.
             if (m_allStatus.compare_exchange_strong(oldStatus.value, newStatus.value, std::memory_order_relaxed))
                 break;
         }
@@ -273,7 +273,7 @@ public:
             // Sanity check.
             for (int i = 0; i < m_numPhilos; i++)
                 assert(newStatus.philos().get(i) <= IntType(m_numPhilos));
-            // CAS until successful.
+            // CAS until successful. On failure, oldStatus will be updated with the latest value.
             if (m_allStatus.compare_exchange_strong(oldStatus.value, newStatus.value, std::memory_order_relaxed))
                 break;
         }

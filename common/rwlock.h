@@ -47,6 +47,7 @@ public:
             {
                 newStatus.readers().add(1);
             }
+            // CAS until successful. On failure, oldStatus will be updated with the latest value.
         }
         while (!m_status.compare_exchange_weak(oldStatus.value, newStatus.value,
                                                std::memory_order_acquire, std::memory_order_relaxed));
@@ -93,6 +94,7 @@ public:
                 newStatus.waitToRead().set(0);
                 newStatus.readers().set(waitToRead);
             }
+            // CAS until successful. On failure, oldStatus will be updated with the latest value.
         }
         while (!m_status.compare_exchange_weak(oldStatus.value, newStatus.value,
                                                std::memory_order_release, std::memory_order_relaxed));

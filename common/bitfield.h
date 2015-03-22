@@ -55,7 +55,7 @@ struct BitFieldMember : BitField<T>
 
     void set(T v)
     {
-        assert(v <= Maximum);
+        assert(v <= Maximum);   // v must fit inside the bitfield member
         this->value = (this->value & ~Mask) | (v << Offset);
     }
 
@@ -66,7 +66,7 @@ struct BitFieldMember : BitField<T>
 
     void add(T v)
     {
-        assert(get() + v <= Maximum);
+        assert(get() + v <= Maximum);   // result must fit inside the bitfield member
         this->value += v << Offset;
     }
 
@@ -77,7 +77,7 @@ struct BitFieldMember : BitField<T>
 
     void sub(T v)
     {
-        assert(get() >= v);
+        assert(get() >= v);     // result must not underflow
         this->value -= v << Offset;
     }
 
@@ -108,7 +108,11 @@ struct BitFieldArray : BitField<T>
     BitFieldArray() = delete;
 
     T maximum() const { return Maximum; }
-    int offset(int i) const { return BaseOffset + BitsPerItem * i; }
+    int offset(int i) const
+    {
+        assert(i >= 0 && i < NumItems);     // array index must be in range
+        return BaseOffset + BitsPerItem * i;
+    }
     T one(int i) const { return T(1) << offset(i); }
     T mask(int i) const { return Maximum << offset(i); }
     int numItems() const { return NumItems; }
@@ -120,7 +124,7 @@ struct BitFieldArray : BitField<T>
 
     void set(int i, T v)
     {
-        assert(v <= Maximum);
+        assert(v <= Maximum);   // v must fit inside the bitfield member
         this->value = (this->value & ~mask(i)) | (v << offset(i));
     }
 
@@ -131,7 +135,7 @@ struct BitFieldArray : BitField<T>
 
     void add(int i, T v)
     {
-        assert(get(i) + v <= Maximum);
+        assert(get(i) + v <= Maximum);   // result must fit inside the bitfield member
         this->value += v << offset(i);
     }
 
@@ -143,7 +147,7 @@ struct BitFieldArray : BitField<T>
 
     void sub(int i, T v)
     {
-        assert(get(i) >= v);
+        assert(get(i) >= v);    // result must not underflow
         this->value -= v << offset(i);
     }
 
