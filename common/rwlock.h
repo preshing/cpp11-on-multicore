@@ -39,20 +39,20 @@ public:
         do
         {
             newStatus = oldStatus;
-            if (oldStatus.writers().get() > 0)
+            if (oldStatus.writers > 0)
             {
-                newStatus.waitToRead().add(1);
+                newStatus.waitToRead++;
             }
             else
             {
-                newStatus.readers().add(1);
+                newStatus.readers++;
             }
             // CAS until successful. On failure, oldStatus will be updated with the latest value.
         }
-        while (!m_status.compare_exchange_weak(oldStatus.value, newStatus.value,
+        while (!m_status.compare_exchange_weak(oldStatus, newStatus,
                                                std::memory_order_acquire, std::memory_order_relaxed));
 
-        if (oldStatus.writers().get() > 0)
+        if (oldStatus.writers > 0)
         {
             m_readSema.wait();
         }
@@ -60,9 +60,9 @@ public:
 
     void unlockReader()
     {
-        Status oldStatus = m_status.fetch_sub(Status().readers().one(), std::memory_order_release);
-        assert(oldStatus.readers().get() > 0);
-        if (oldStatus.readers().get() == 1 && oldStatus.writers().get() > 0)
+        Status oldStatus = m_status.fetch_sub(Status().readers.one(), std::memory_order_release);
+        assert(oldStatus.readers > 0);
+        if (oldStatus.readers == 1 && oldStatus.writers > 0)
         {
             m_writeSema.signal();
         }
@@ -70,9 +70,9 @@ public:
 
     void lockWriter()
     {
-        Status oldStatus = m_status.fetch_add(Status().writers().one(), std::memory_order_acquire);
-        assert(oldStatus.writers().get() + 1 <= Status().writers().maximum());
-        if (oldStatus.readers().get() > 0 || oldStatus.writers().get() > 0)
+        Status oldStatus = m_status.fetch_add(Status().writers.one(), std::memory_order_acquire);
+        assert(oldStatus.writers + 1 <= Status().writers.maximum());
+        if (oldStatus.readers > 0 || oldStatus.writers > 0)
         {
             m_writeSema.wait();
         }
@@ -85,25 +85,25 @@ public:
         uint32_t waitToRead = 0;
         do
         {
-            assert(oldStatus.readers().get() == 0);
+            assert(oldStatus.readers == 0);
             newStatus = oldStatus;
-            newStatus.writers().sub(1);
-            waitToRead = oldStatus.waitToRead().get();
+            newStatus.writers--;
+            waitToRead = oldStatus.waitToRead;
             if (waitToRead > 0)
             {
-                newStatus.waitToRead().set(0);
-                newStatus.readers().set(waitToRead);
+                newStatus.waitToRead = 0;
+                newStatus.readers = waitToRead;
             }
             // CAS until successful. On failure, oldStatus will be updated with the latest value.
         }
-        while (!m_status.compare_exchange_weak(oldStatus.value, newStatus.value,
+        while (!m_status.compare_exchange_weak(oldStatus, newStatus,
                                                std::memory_order_release, std::memory_order_relaxed));
 
         if (waitToRead > 0)
         {
             m_readSema.signal(waitToRead);
         }
-        else if (oldStatus.writers().get() > 1)
+        else if (oldStatus.writers > 1)
         {
             m_writeSema.signal();
         }

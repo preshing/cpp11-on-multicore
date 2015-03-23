@@ -34,6 +34,15 @@ TestInfo g_tests[] =
     ADD_TEST(testDiningPhilosophers)
 };
 
+#include "bitfield.h"
+    BEGIN_BITFIELD_TYPE(Status, uint32_t)
+        ADD_BITFIELD_ARRAY(philos, 0, 4, 8)
+    END_BITFIELD_TYPE()
+
+    __declspec(noinline) void foo(Status& s, int index)
+    {
+        s.philos[index] = 7;
+    }
 
 //---------------------------------------------------------
 // main
@@ -41,6 +50,10 @@ TestInfo g_tests[] =
 int main()
 {
     bool allTestsPassed = true;
+
+    Status s;
+    foo(s, 5);
+    std::cout << Status().philos.maximum() << std::endl;
 
     for (const TestInfo& test : g_tests)
     {

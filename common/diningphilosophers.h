@@ -162,7 +162,7 @@ private:
     int m_numPhilos;
 
     // Lock-free "box office".
-    // AllStatus::philos() keeps track of the status of each philosopher (thread).
+    // AllStatus::philos keeps track of the status of each philosopher (thread).
     // 0: Philosopher is thinking
     // 1: Philosopher is eating
     // 2+: Philosopher is waiting and must not eat before his/her direct neighbors if they have a lower status.
@@ -193,19 +193,19 @@ private:
     bool tryAdjustStatus(AllStatus& allStatus, int philoIndex, int target, int step) const
     {
         // Should not already have the target status.
-        assert(allStatus.philos().get(philoIndex) != target);
-        if (allStatus.philos().get(philoIndex) == target + 1)
+        assert(allStatus.philos[philoIndex] != target);
+        if (allStatus.philos[philoIndex] == target + 1)
         {
             // Decrementing this status will bring it to target.
             // Make sure the next neighbor doesn't prevent it.
             int n = neighbor(philoIndex, step);
-            assert(allStatus.philos().get(n) != target + 1);    // No two neighbors should have equal status > 0.
-            if (allStatus.philos().get(n) != target)
+            assert(allStatus.philos[n] != target + 1);    // No two neighbors should have equal status > 0.
+            if (allStatus.philos[n] != target)
             {
                 // Decrement it.
-                allStatus.philos().set(philoIndex, target);
+                allStatus.philos[philoIndex] = target;
                 // If neighbor's status is exactly 1 greater, continue visiting.
-                if (allStatus.philos().get(n) > IntType(target))
+                if (allStatus.philos[n] > IntType(target))
                     tryAdjustStatus(allStatus, n, target + 1, step);
                 return true;
             }
@@ -218,8 +218,8 @@ public:
     : m_numPhilos(numPhilos)
     , m_allStatus(0)
     {
-        assert(IntType(numPhilos) <= AllStatus().philos().maximum());
-        assert(numPhilos < AllStatus().philos().numItems());
+        assert(IntType(numPhilos) <= AllStatus().philos.maximum());
+        assert(numPhilos < AllStatus().philos.numItems());
         m_sema = std::unique_ptr<DefaultSemaphoreType[]>(new DefaultSemaphoreType[numPhilos]);
     }
 
@@ -230,16 +230,16 @@ public:
         AllStatus oldStatus = m_allStatus.load(std::memory_order_relaxed);
         for (;;)    // Begin CAS loop
         {
-            assert(oldStatus.philos().get(philoIndex) == 0);    // Must have been thinking
+            assert(oldStatus.philos[philoIndex] == 0);    // Must have been thinking
             // Establish order relative to direct neighbors.
-            maxNeighborStatus = std::max(oldStatus.philos().get(left(philoIndex)), oldStatus.philos().get(right(philoIndex)));
+            maxNeighborStatus = std::max(oldStatus.philos[left(philoIndex)], oldStatus.philos[right(philoIndex)]);
             AllStatus newStatus(oldStatus);
-            newStatus.philos().set(philoIndex, maxNeighborStatus + 1);
+            newStatus.philos[philoIndex] = maxNeighborStatus + 1;
             // Sanity check.
             for (int i = 0; i < m_numPhilos; i++)
-                assert(newStatus.philos().get(i) <= IntType(m_numPhilos));
+                assert(newStatus.philos[i] <= IntType(m_numPhilos));
             // CAS until successful. On failure, oldStatus will be updated with the latest value.
-            if (m_allStatus.compare_exchange_strong(oldStatus.value, newStatus.value, std::memory_order_relaxed))
+            if (m_allStatus.compare_exchange_strong(oldStatus, newStatus, std::memory_order_relaxed))
                 break;
         }
 
@@ -258,11 +258,11 @@ public:
         AllStatus oldStatus = m_allStatus.load(std::memory_order_relaxed);
         for (;;)    // Begin CAS loop
         {
-            assert(oldStatus.philos().get(philoIndex) == 1);    // Must have been eating
+            assert(oldStatus.philos[philoIndex] == 1);    // Must have been eating
             AllStatus newStatus(oldStatus);
-            newStatus.philos().set(philoIndex, 0);
+            newStatus.philos[philoIndex] = 0;
             // Choose which neighbor to visit first based on priority
-            if (newStatus.philos().get(firstNeighbor) > newStatus.philos().get(secondNeighbor))
+            if (newStatus.philos[firstNeighbor] > newStatus.philos[secondNeighbor])
             {
                 std::swap(firstNeighbor, secondNeighbor);
                 stepFirst = m_numPhilos - stepFirst;
@@ -272,9 +272,9 @@ public:
             secondWillEat = tryAdjustStatus(newStatus, secondNeighbor, 1, m_numPhilos - stepFirst);
             // Sanity check.
             for (int i = 0; i < m_numPhilos; i++)
-                assert(newStatus.philos().get(i) <= IntType(m_numPhilos));
+                assert(newStatus.philos[i] <= IntType(m_numPhilos));
             // CAS until successful. On failure, oldStatus will be updated with the latest value.
-            if (m_allStatus.compare_exchange_strong(oldStatus.value, newStatus.value, std::memory_order_relaxed))
+            if (m_allStatus.compare_exchange_strong(oldStatus, newStatus, std::memory_order_relaxed))
                 break;
         }
 
