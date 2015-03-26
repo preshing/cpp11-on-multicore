@@ -17,6 +17,8 @@
 template <typename T, int Offset, int Bits>
 struct BitFieldMember
 {
+    T value;
+
     static_assert(Offset + Bits <= (int) sizeof(T) * 8, "Member exceeds bitfield boundaries");
     static_assert(Bits < (int) sizeof(T) * 8, "Can't fill entire bitfield with one member");
 
@@ -24,8 +26,6 @@ struct BitFieldMember
     static const T Mask = Maximum << Offset;
     T maximum() const { return Maximum; }
     T one() const { return T(1) << Offset; }
-
-    T value;
 
     operator T() const
     {
@@ -68,14 +68,14 @@ struct BitFieldMember
 template <typename T, int BaseOffset, int BitsPerItem, int NumItems>
 struct BitFieldArray
 {
+    T value;
+
     static_assert(BaseOffset + BitsPerItem * NumItems <= (int) sizeof(T) * 8, "Array exceeds bitfield boundaries");
     static_assert(BitsPerItem < (int) sizeof(T) * 8, "Can't fill entire bitfield with one array element");
 
     static const T Maximum = (T(1) << BitsPerItem) - 1;
     T maximum() const { return Maximum; }
     int numItems() const { return NumItems; }
-
-    T value;
 
     class Element
     {
