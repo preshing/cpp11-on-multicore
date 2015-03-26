@@ -11,22 +11,21 @@
 
 //---------------------------------------------------------
 // BitFieldMember<>: Used internally by ADD_BITFIELD_MEMBER macro.
+// All members are public to simplify compliance with sections 9.0.7 and
+// 9.5.1 of the C++11 standard, thereby avoiding undefined behavior.
 //---------------------------------------------------------
-template <class T, int Offset, int Bits>
-class BitFieldMember
+template <typename T, int Offset, int Bits>
+struct BitFieldMember
 {
-private:
     static_assert(Offset + Bits <= (int) sizeof(T) * 8, "Member exceeds bitfield boundaries");
     static_assert(Bits < (int) sizeof(T) * 8, "Can't fill entire bitfield with one member");
 
     static const T Maximum = (T(1) << Bits) - 1;
     static const T Mask = Maximum << Offset;
-
-    T value;
-
-public:
     T maximum() const { return Maximum; }
     T one() const { return T(1) << Offset; }
+
+    T value;
 
     operator T() const
     {
@@ -63,15 +62,18 @@ public:
 
 //---------------------------------------------------------
 // BitFieldArray<>: Used internally by ADD_BITFIELD_ARRAY macro.
+// All members are public to simplify compliance with sections 9.0.7 and
+// 9.5.1 of the C++11 standard, thereby avoiding undefined behavior.
 //---------------------------------------------------------
-template <class T, int BaseOffset, int BitsPerItem, int NumItems>
-class BitFieldArray
+template <typename T, int BaseOffset, int BitsPerItem, int NumItems>
+struct BitFieldArray
 {
-private:
     static_assert(BaseOffset + BitsPerItem * NumItems <= (int) sizeof(T) * 8, "Array exceeds bitfield boundaries");
     static_assert(BitsPerItem < (int) sizeof(T) * 8, "Can't fill entire bitfield with one array element");
 
     static const T Maximum = (T(1) << BitsPerItem) - 1;
+    T maximum() const { return Maximum; }
+    int numItems() const { return NumItems; }
 
     T value;
 
@@ -117,10 +119,6 @@ private:
         Element& operator--(int) { return *this -= 1; }    // postfix form
     };
 
-public:
-    T maximum() const { return Maximum; }
-    int numItems() const { return NumItems; }
-
     Element operator[](int i)
     {
         assert(i >= 0 && i < NumItems);     // array index must be in range
@@ -138,27 +136,29 @@ public:
 //---------------------------------------------------------
 // Bitfield definition macros.
 // For usage examples, see RWLock and LockReducedDiningPhilosophers.
+// All members are public to simplify compliance with sections 9.0.7 and
+// 9.5.1 of the C++11 standard, thereby avoiding undefined behavior.
 //---------------------------------------------------------
 #define BEGIN_BITFIELD_TYPE(typeName, T) \
     union typeName \
     { \
-    private: \
-        typedef T _IntType; \
-        T value; \
-    public: \
-        typeName(T v = 0) : value(v) {} \
-        typeName& operator=(T v) { value = v; return *this; } \
-        operator T&() { return value; } \
-        operator T() const { return value; }
+        struct Wrapper { T value; }; \
+        Wrapper wrapper; \
+        typeName(T v = 0) { wrapper.value = v; } \
+        typeName& operator=(T v) { wrapper.value = v; return *this; } \
+        operator T&() { return wrapper.value; } \
+        operator T() const { return wrapper.value; } \
+        typedef T StorageType;
 
 #define ADD_BITFIELD_MEMBER(memberName, offset, bits) \
-        BitFieldMember<_IntType, offset, bits> memberName;
+        BitFieldMember<StorageType, offset, bits> memberName;
 
 #define ADD_BITFIELD_ARRAY(memberName, offset, bits, numItems) \
-        BitFieldArray<_IntType, offset, bits, numItems> memberName;
+        BitFieldArray<StorageType, offset, bits, numItems> memberName;
 
 #define END_BITFIELD_TYPE() \
     };
 
 
 #endif // __CPP11OM_BITFIELD_H__
+
