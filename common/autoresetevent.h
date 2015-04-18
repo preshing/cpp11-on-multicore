@@ -35,9 +35,7 @@ public:
         for (;;)    // Increment m_status atomically via CAS loop.
         {
             assert(oldStatus <= 1);
-            if (oldStatus == 1)
-                return;     // Event object is already signaled.
-            int newStatus = oldStatus + 1;
+            int newStatus = oldStatus < 1 ? oldStatus + 1 : 1;
             if (m_status.compare_exchange_weak(oldStatus, newStatus, std::memory_order_release, std::memory_order_relaxed))
                 break;
             // The compare-exchange failed, likely because another thread changed m_status.

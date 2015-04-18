@@ -6,7 +6,7 @@ Code is released under the [zlib license](http://en.wikipedia.org/wiki/Zlib_Lice
 
 ## How to Build the Tests
 
-First, you must generate the projects using [CMake](http://www.cmake.org/). Open a command prompt in the `tests` folder and do the following.
+First, you must generate the projects using [CMake](http://www.cmake.org/). Open a command prompt in the `tests/basetests` folder and do the following.
 
     mkdir build
     cd build
