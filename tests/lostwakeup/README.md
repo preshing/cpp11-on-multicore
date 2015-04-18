@@ -1,3 +1,5 @@
+This project tests `AutoResetEvent` for lost wakeups.
+
 The original implementation of `AutoResetEvent::signal()`, [as of commit 3347437](https://github.com/preshing/cpp11-on-multicore/tree/3347437911bfd3a45ddc07cb1cbb4a9d3e55583c), looked like this:
 
     void signal()
