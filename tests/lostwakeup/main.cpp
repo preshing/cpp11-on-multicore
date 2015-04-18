@@ -4,8 +4,8 @@
 //---------------------------------------------------------
 
 #include <iostream>
-#include <sstream>
-#include <iomanip>
+#include <string>
+#include <ctime>
 #include <thread>
 #include <random>
 #include <chrono>
@@ -17,9 +17,11 @@
 std::string makeTimeString(const std::chrono::time_point<std::chrono::system_clock>& point)
 {
     std::time_t time = std::chrono::system_clock::to_time_t(point);
-    std::stringstream str;
-    str << std::put_time(std::localtime(&time), "%c");
-    return str.str();
+    char str[256];
+    if (strftime(str, sizeof(str), "%c", std::localtime(&time)))
+        return str;
+    else
+        return "???";
 }
 
 
