@@ -29,7 +29,7 @@ Commenter [Tobias Brüll correctly pointed out](http://preshing.com/20150316/sem
 > 
 > 2.) T2 reorders the `m_status.load(std::memory_order_relaxed)` before `requests.push(r)` to obtain 1. 
 > 
-> 3.) W runs. First it calls `are.wait()` and sets `are.m_status == 1`. W then empties the `requests`-queue; processing only one item. In the subsequent call to `are.wait()` it blocks on the semaphore. 
+> 3.) W runs. First it calls `are.wait()` and sets `are.m_status = 0`. W then empties the `requests`-queue; processing only one item. In the subsequent call to `are.wait()` it blocks on the semaphore. 
 > 
 > 4.) T2 continues. The effects of `requests.push(r)` become visible. However, since oldStatus == 1 in are.signal(), nothing happens in T2's call to are.signal(). 
 > 
