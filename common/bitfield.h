@@ -54,9 +54,19 @@ struct BitFieldMember
     }
 
     BitFieldMember& operator++() { return *this += 1; }
-    BitFieldMember& operator++(int) { return *this += 1; }    // postfix form
+    BitFieldMember operator++(int)        // postfix form
+    {
+        BitFieldMember tmp(*this);
+        operator++();
+        return tmp;
+    }
     BitFieldMember& operator--() { return *this -= 1; }
-    BitFieldMember& operator--(int) { return *this -= 1; }    // postfix form
+    BitFieldMember operator--(int)       // postfix form
+    {
+        BitFieldMember tmp(*this);
+        operator--();
+        return tmp;
+    }
 };
 
 
@@ -114,9 +124,19 @@ struct BitFieldArray
         }
 
         Element& operator++() { return *this += 1; }
-        Element& operator++(int) { return *this += 1; }    // postfix form
+        Element operator++(int)                // postfix form
+        {
+	    Element tmp(*this);
+	    operator++();
+	    return tmp;
+	}
         Element& operator--() { return *this -= 1; }
-        Element& operator--(int) { return *this -= 1; }    // postfix form
+        Element operator--(int)                // postfix form
+	{
+	    Element tmp(*this);
+	    operator--();
+	    return tmp;
+	}
     };
 
     Element operator[](int i)
