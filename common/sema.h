@@ -8,6 +8,7 @@
 
 #include <atomic>
 #include <cassert>
+#include <thread>
 
 
 #if defined(_WIN32)
@@ -203,8 +204,15 @@ public:
 
     void wait()
     {
-        if (!tryWait())
-            waitWithPartialSpinning();
+        if (!tryWait()) {
+            // Cache inquiry of how many "hardware thread contexts" are available
+            static const bool s_multicore = std::thread::hardware_concurrency() > 1;
+            if (s_multicore) {
+                waitWithPartialSpinning();
+            } else {
+                m_sema.wait();
+            }
+        }
     }
 
     void signal(int count = 1)
